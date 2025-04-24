@@ -1,0 +1,7 @@
+{
+  "type": "module",
+  "dependencies": {
+    "pug": "^3.0.3",
+    "toml": "^3.0.0"
+  }
+}

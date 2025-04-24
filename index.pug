@@ -1,0 +1,15 @@
+doctype html
+html(lang="en")
+  head
+    title
+    meta(name="description",content="Politics, philosophy, life:death.")
+    meta(name="viewport",content="width=device-width,intial-scale=1.0")
+    meta(content="utf-8",http-equiv="encoding")
+    link(rel="stylesheet",href="style.css")
+  body
+    - for (var c=0; c<categories.length; c++) {
+      div= `hello ${categories[c]}.`
+      - for (var a=0; a<Math.min(articles[categories[c]].length,MAX_ARTICLE_PER_CATEGORY); a++) {
+        div= `  article: ${articles[categories[c]][a].title}`
+      - }
+    - }

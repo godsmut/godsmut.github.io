@@ -1,0 +1,43 @@
+#!/usr/bin/env node
+import pug from 'pug';
+import fs from 'node:fs/promises';
+import toml from 'toml';
+
+const X_IN_CATEGORIES = 8;
+
+
+const articles = (await fs.readdir('articles', {recursive:true}))
+                   .filter((a) => a.endsWith('.md'));
+
+const titles = {priorities:[],categories:{}};
+await Promise.all(articles.map(async (v) => {
+  var m = (await fs.readFile(`articles/${v}`))
+            .toString()
+            .split("\n\n\n");
+  var n = v.split('/');
+  var s = await fs.stat(`articles/${v}`);
+  titles[v] = {
+   'meta':     m.length > 1 ? toml.parse(m[0]) : {}
+  ,'title':    n[1].split('.')[0]
+  ,'markdown': m.length > 1 ? m[1] : m[0]
+  ,'category': n[0]
+  ,'priority': m.length > 1 ? new Date(titles[v].meta.date) : -s.birthtimeMs
+  };
+  titles.categories[n[0]] ||= [];
+  titles.categories[n[0]].push(titles[v]);
+  titles.priorities.push(titles[v]);
+}));
+
+let sfn = (a,b) => a.priority - b.priority;
+titles.priorities.sort(sfn);
+Object.keys(titles.categories).map(c => titles.categories[c].sort(sfn));
+let {n: category} = titles.priorities.reduce((a,v) =>
+  (!a.c[v.category] && (((a.c[v.category] = true) && false) || (a.n.push(v.category) && false))) || a
+, {c:{},n:[]});
+
+console.log(titles);
+console.log(category);
+
+
+var index_html = pug.renderFile('index.pug', {categories:category, articles: titles.categories, MAX_ARTICLE_PER_CATEGORY:X_IN_CATEGORIES});
+await fs.writeFile('preview/index.html', index_html);
